@@ -1,15 +1,20 @@
-import { Provider } from 'react-redux';
-import { store } from '../redux/store';
-import '../globals.css';
+// src/app/layout.js
+import './globals.css';
+import ProviderWrapper from '../app/ProviderWrapper';
+
+export const metadata = {
+  title: 'Product Management App',
+  description: 'Manage products with ease',
+};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <Provider store={store}>
+        <ProviderWrapper>
           {children}
-        </Provider>
+        </ProviderWrapper>
       </body>
     </html>
-  )
+  );
 }
