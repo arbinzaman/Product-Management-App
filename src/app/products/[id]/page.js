@@ -42,45 +42,57 @@ export default function ProductDetails() {
     fetchProduct();
   }, [token, id]);
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    toast.success('Logged out successfully');
+    router.push('/login');
+  };
+
   const handleDelete = () => {
-    toast((t) => (
-      <div className="flex flex-col sm:flex-row gap-2 items-center">
-        <span>Are you sure you want to delete this product?</span>
-        <div className="flex gap-2 mt-2 sm:mt-0">
-          <button
-            className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
-            onClick={async () => {
-              setDeleting(true);
-              try {
-                const res = await fetch(`https://api.bitechx.com/products/${id}`, {
-                  method: 'DELETE',
-                  headers: { Authorization: `Bearer ${token}` },
-                });
-                if (!res.ok) throw new Error('Failed to delete');
-                toast.dismiss(t.id);
-                toast.success('Product deleted successfully');
-                router.push('/products');
-              } catch (err) {
-                toast.error(err.message);
-              } finally {
-                setDeleting(false);
-              }
-            }}
-          >
-            Delete
-          </button>
-          <button
-            className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition"
-            onClick={() => toast.dismiss(t.id)}
-          >
-            Cancel
-          </button>
+    toast(
+      (t) => (
+        <div className="flex flex-col sm:flex-row gap-2 items-center">
+          <span>Are you sure you want to delete this product?</span>
+          <div className="flex gap-2 mt-2 sm:mt-0">
+            <button
+              className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+              onClick={async () => {
+                setDeleting(true);
+                try {
+                  const res = await fetch(
+                    `https://api.bitechx.com/products/${id}`,
+                    {
+                      method: 'DELETE',
+                      headers: { Authorization: `Bearer ${token}` },
+                    }
+                  );
+                  if (!res.ok) throw new Error('Failed to delete');
+                  toast.dismiss(t.id);
+                  toast.success('Product deleted successfully');
+                  router.push('/products');
+                } catch (err) {
+                  toast.error(err.message);
+                } finally {
+                  setDeleting(false);
+                }
+              }}
+            >
+              Delete
+            </button>
+            <button
+              className="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400 transition"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+          </div>
         </div>
-      </div>
-    ), {
-      duration: 8000,
-      style: { minWidth: '300px' }
-    });
+      ),
+      {
+        duration: 8000,
+        style: { minWidth: '300px' },
+      }
+    );
   };
 
   if (status === 'loading')
@@ -98,17 +110,20 @@ export default function ProductDetails() {
     <div className="min-h-screen bg-[#E0F2FF] px-4 py-10">
       <Toaster position="top-center" />
 
-      {/* Top Bar with BackButton */}
-      <div className="sticky top-0 z-50 mb-6 rounded-xl p-3 flex items-center gap-3 ">
+      {/* Top Bar with BackButton + Logout */}
+      <div className="sticky top-0 z-50 mb-6 flex items-center justify-between bg-white/80 backdrop-blur-md rounded-xl p-3 shadow-lg">
         <BackButton />
-        
+        <button
+          onClick={handleLogout}
+          className="px-5 py-2 bg-gradient-to-r from-[#3B82F6] to-[#1E40AF] text-white font-semibold rounded-lg shadow-md hover:scale-105 hover:shadow-xl transition-transform duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300"
+        >
+          Logout
+        </button>
       </div>
 
+      {/* Product Details */}
       <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-auto p-8 sm:p-10">
         <div className="flex flex-col sm:flex-row gap-6">
-          <h1 className="text-xl md:text-3xl font-bold text-[#1E40AF]">
-          {product.name}
-        </h1>
           <img
             src={product.images?.[0]}
             alt={product.name}
@@ -116,6 +131,9 @@ export default function ProductDetails() {
           />
           <div className="flex-1 flex flex-col justify-between">
             <div>
+              <h1 className="text-2xl md:text-3xl font-bold text-[#1E40AF] mb-2">
+                {product.name}
+              </h1>
               <p className="mb-4 text-gray-700">{product.description}</p>
               <p className="text-xl font-bold text-[#1E40AF]">${product.price}</p>
             </div>
@@ -127,7 +145,9 @@ export default function ProductDetails() {
                 Edit
               </button>
               <button
-                className={`flex-1 sm:flex-none py-3 px-6 bg-red-600 text-white rounded-full font-semibold shadow-lg hover:scale-105 transition-transform ${deleting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`flex-1 sm:flex-none py-3 px-6 bg-red-600 text-white rounded-full font-semibold shadow-lg hover:scale-105 transition-transform ${
+                  deleting ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
                 onClick={handleDelete}
                 disabled={deleting}
               >

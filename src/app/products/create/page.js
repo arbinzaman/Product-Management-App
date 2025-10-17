@@ -27,7 +27,7 @@ export default function CreateProductPage() {
     setToken(storedToken);
   }, []);
 
-  // Fetch categories for select dropdown
+  // Fetch categories
   useEffect(() => {
     if (!token) return;
 
@@ -68,6 +68,12 @@ export default function CreateProductPage() {
     setForm({ ...form, images: newImages.length ? newImages : [''] });
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    toast.success('Logged out successfully');
+    router.push('/login');
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -104,17 +110,22 @@ export default function CreateProductPage() {
       <Toaster position="top-center" />
 
       {/* Top Bar */}
-      <div className="sticky top-0 z-50   mb-6 rounded-xl p-3 flex items-center justify-between md:justify-start gap-3 md:gap-6">
+      <div className="sticky top-0 z-50 mb-6 flex items-center justify-between bg-white/80 backdrop-blur-md rounded-xl p-3 ">
         <BackButton />
-       
+        <button
+          onClick={handleLogout}
+          className="px-5 py-2 bg-gradient-to-r from-[#3B82F6] to-[#1E40AF] text-white font-semibold rounded-lg shadow-md hover:scale-105 hover:shadow-xl transition-transform duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300"
+        >
+          Logout
+        </button>
       </div>
 
       {/* Form Container */}
       <div className="bg-white w-full max-w-lg mx-auto rounded-2xl shadow-2xl p-8 sm:p-10">
-         <h1 className="text-xl md:text-3xl font-bold text-[#1E40AF]">
+        <h1 className="text-xl md:text-3xl font-bold text-[#1E40AF]">
           Create Product
         </h1>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6 ">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
           <input
             name="name"
             value={form.name}

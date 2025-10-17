@@ -5,10 +5,13 @@ import { useRouter, useParams } from 'next/navigation';
 import { PacmanLoader } from 'react-spinners';
 import toast, { Toaster } from 'react-hot-toast';
 import BackButton from '@/shared/BackButton';
+import { useDispatch } from 'react-redux';
+import { logout } from '@/redux/slices/authSlice';
 
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
+  const dispatch = useDispatch();
   const id = params.id;
 
   const [token, setToken] = useState(null);
@@ -21,18 +24,17 @@ export default function EditProductPage() {
   });
   const [categories, setCategories] = useState([]);
   const [loadingCategories, setLoadingCategories] = useState(true);
-
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Get token
+  // ✅ Get token
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     setToken(storedToken);
   }, []);
 
-  // Fetch categories
+  // ✅ Fetch categories
   useEffect(() => {
     if (!token) return;
     const fetchCategories = async () => {
@@ -53,7 +55,7 @@ export default function EditProductPage() {
     fetchCategories();
   }, [token]);
 
-  // Fetch product
+  // ✅ Fetch product
   useEffect(() => {
     if (!token || !id) return;
     const fetchProduct = async () => {
@@ -79,6 +81,12 @@ export default function EditProductPage() {
     };
     fetchProduct();
   }, [token, id]);
+
+  // ✅ Handle logout
+  const handleLogout = () => {
+    dispatch(logout());
+    router.push('/login');
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -141,17 +149,20 @@ export default function EditProductPage() {
     <div className="min-h-screen bg-[#E0F2FF] px-4 py-10">
       <Toaster position="top-center" />
 
-      {/* Top Bar */}
-      <div className="sticky top-0 z-50 mb-6 rounded-xl p-3 flex items-center justify-between md:justify-start gap-3 md:gap-6shadow-md">
+      {/* ✅ Top Bar */}
+      <div className="sticky top-0 z-50 mb-6 rounded-xl p-3 flex items-center justify-between md:justify-between gap-3 shadow-md">
         <BackButton />
-    
+        <button
+          onClick={handleLogout}
+          className="px-5 py-2 bg-gradient-to-r from-[#3B82F6] to-[#1E40AF] text-white font-semibold rounded-lg shadow-md hover:scale-105 hover:shadow-xl transition-transform duration-300 focus:outline-none focus:ring-4 focus:ring-blue-300"
+        >
+          Logout
+        </button>
       </div>
 
-      {/* Form Container */}
+      {/* ✅ Form Container */}
       <div className="bg-white w-full max-w-lg mx-auto rounded-2xl shadow-2xl p-8 sm:p-10">
-            <h1 className="text-xl md:text-3xl font-bold text-[#1E40AF]">
-          Edit Product
-        </h1>
+        <h1 className="text-xl md:text-3xl font-bold text-[#1E40AF]">Edit Product</h1>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
           <input
             name="name"
