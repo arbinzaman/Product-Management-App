@@ -2,7 +2,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
-  token: typeof window !== "undefined" ? localStorage.getItem("token") : null, // get token from localStorage
+  token:
+    typeof window !== "undefined" ? localStorage.getItem("token") : null, // get token from localStorage
 };
 
 const authSlice = createSlice({
@@ -10,23 +11,33 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     setToken: (state, action) => {
-      state.token = action.payload;
-      console.log("Token set in Redux:", state.token); // ✅ logs token in Redux
+      const token = action.payload;
+      state.token = token;
+
       if (typeof window !== "undefined") {
-        localStorage.setItem("token", action.payload);
-        console.log(
-          "Token saved in localStorage:",
-          localStorage.getItem("token")
-        ); // ✅ logs token in localStorage
+        // Save in localStorage
+        localStorage.setItem("token", token);
+
+        // ✅ Save in cookie (so middleware can read it)
+        document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
+
+        console.log("✅ Token set in Redux + localStorage + cookie:", token);
       }
     },
 
     logout: (state) => {
       console.log("Logging out, previous token:", state.token);
       state.token = null;
+
       if (typeof window !== "undefined") {
+        // Remove from localStorage
         localStorage.removeItem("token");
-        console.log("Token removed from localStorage");
+
+        // ✅ Remove cookie
+        document.cookie =
+          "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+
+        console.log("🚪 Token removed from Redux + localStorage + cookie");
       }
     },
   },
