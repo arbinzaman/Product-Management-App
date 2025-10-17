@@ -140,6 +140,7 @@ console.log(product);
 
     // ✅ Redirect to product details and reload
     router.push(`/products`);
+    window.location.reload();
     // OR if you want a hard reload:
     // router.replace(`/products/${product?.id}`);
   } catch (err) {
