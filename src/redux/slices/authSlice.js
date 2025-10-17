@@ -1,9 +1,20 @@
 // src/redux/slices/authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
+const getInitialToken = () => {
+  if (typeof window === "undefined") return null;
+
+  const token = localStorage.getItem("token");
+  if (!token) {
+    console.log("❌ No token found, logging out");
+    localStorage.removeItem("token");
+    document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+  }
+  return token;
+};
+
 const initialState = {
-  token:
-    typeof window !== "undefined" ? localStorage.getItem("token") : null, // get token from localStorage
+  token: getInitialToken(),
 };
 
 const authSlice = createSlice({
@@ -18,7 +29,7 @@ const authSlice = createSlice({
         // Save in localStorage
         localStorage.setItem("token", token);
 
-        // ✅ Save in cookie (so middleware can read it)
+        // Save in cookie (so middleware can read it)
         document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax`;
 
         console.log("✅ Token set in Redux + localStorage + cookie:", token);
@@ -33,7 +44,7 @@ const authSlice = createSlice({
         // Remove from localStorage
         localStorage.removeItem("token");
 
-        // ✅ Remove cookie
+        // Remove cookie
         document.cookie =
           "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
 
