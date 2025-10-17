@@ -10,6 +10,7 @@ export default function ProductDetails() {
   const router = useRouter();
   const { id } = useParams();
   const [product, setProduct] = useState(null);
+  console.log(product?.id);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
   const [token, setToken] = useState(null);
@@ -60,16 +61,19 @@ export default function ProductDetails() {
                 setDeleting(true);
                 try {
                   const res = await fetch(
-                    `https://api.bitechx.com/products/${id}`,
+                    `https://api.bitechx.com/products/${product?.id}`,
                     {
                       method: 'DELETE',
                       headers: { Authorization: `Bearer ${token}` },
                     }
                   );
-                  if (!res.ok) throw new Error('Failed to delete');
-                  toast.dismiss(t.id);
-                  toast.success('Product deleted successfully');
-                  router.push('/products');
+                  console.log(res);
+                  if (res.status !== 200) throw new Error('Failed to delete');
+                  if (res.status === 200) {
+                    toast.dismiss(t.id);
+                    toast.success('Product deleted successfully');
+                    router.push('/products');
+                  }
                 } catch (err) {
                   toast.error(err.message);
                 } finally {

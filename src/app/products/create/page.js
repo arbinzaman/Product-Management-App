@@ -144,14 +144,16 @@ export default function CreateProductPage() {
             required
           />
           <input
-            name="price"
-            type="number"
-            value={form.price}
-            onChange={handleChange}
-            placeholder="Price"
-            className="w-full p-3 text-black rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#A7C4DC] transition"
-            required
-          />
+  name="price"
+  type="number"
+  min={0}       // Prevent negative numbers in the input
+  value={form.price}
+  onChange={handleChange}
+  placeholder="Price"
+  className="w-full p-3 text-black rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#A7C4DC] transition"
+  required
+/>
+
 
           {/* Images */}
           <div className="flex flex-col gap-3">

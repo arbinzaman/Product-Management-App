@@ -13,7 +13,8 @@ export default function EditProductPage() {
   const params = useParams();
   const dispatch = useDispatch();
   const id = params.id;
-
+const [product, setProduct] = useState(null);
+console.log(product);
   const [token, setToken] = useState(null);
   const [form, setForm] = useState({
     name: '',
@@ -57,30 +58,38 @@ export default function EditProductPage() {
 
   // ✅ Fetch product
   useEffect(() => {
-    if (!token || !id) return;
-    const fetchProduct = async () => {
-      setStatus('loading');
-      try {
-        const res = await fetch(`https://api.bitechx.com/products/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!res.ok) throw new Error('Failed to fetch product');
-        const data = await res.json();
-        setForm({
-          name: data.name,
-          description: data.description,
-          price: data.price,
-          images: data.images.length ? data.images : [''],
-          categoryId: data.categoryId || '',
-        });
-        setStatus('succeeded');
-      } catch (err) {
-        setError(err.message);
-        setStatus('failed');
-      }
-    };
-    fetchProduct();
-  }, [token, id]);
+  if (!token || !id) return;
+
+  const fetchProduct = async () => {
+    setStatus('loading');
+    try {
+      const res = await fetch(`https://api.bitechx.com/products/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error('Failed to fetch product');
+      const data = await res.json();
+
+      // ✅ store in product state
+      setProduct(data);
+
+      // ✅ populate form with fetched data
+      setForm({
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        images: data.images.length ? data.images : [''],
+        categoryId: data.categoryId || '',
+      });
+
+      setStatus('succeeded');
+    } catch (err) {
+      setError(err.message);
+      setStatus('failed');
+    }
+  };
+
+  fetchProduct();
+}, [token, id]);
 
   // ✅ Handle logout
   const handleLogout = () => {
@@ -107,33 +116,39 @@ export default function EditProductPage() {
   };
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setSubmitting(true);
-    try {
-      const res = await fetch(`https://api.bitechx.com/products/${id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          name: form.name,
-          description: form.description,
-          price: Number(form.price),
-          images: form.images.filter((img) => img),
-          categoryId: form.categoryId,
-        }),
-      });
+  e.preventDefault();
+  setSubmitting(true);
+  try {
+    const res = await fetch(`https://api.bitechx.com/products/${product?.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        name: form.name,
+        description: form.description,
+        price: Number(form.price),
+        images: form.images.filter((img) => img),
+        categoryId: form.categoryId,
+      }),
+    });
 
-      if (!res.ok) throw new Error('Failed to update product');
-      toast.success('Product updated successfully!');
-      router.push(`/products/${id}`);
-    } catch (err) {
-      toast.error(err.message);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+    if (!res.ok) throw new Error('Failed to update product');
+
+    toast.success('Product updated successfully!');
+
+    // ✅ Redirect to product details and reload
+    router.push(`/products`);
+    // OR if you want a hard reload:
+    // router.replace(`/products/${product?.id}`);
+  } catch (err) {
+    toast.error(err.message);
+  } finally {
+    setSubmitting(false);
+  }
+};
+
 
   if (status === 'loading')
     return (
