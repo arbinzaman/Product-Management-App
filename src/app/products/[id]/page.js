@@ -4,10 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { PacmanLoader } from 'react-spinners';
 import toast, { Toaster } from 'react-hot-toast';
+import BackButton from '@/shared/BackButton';
 
 export default function ProductDetails() {
   const router = useRouter();
-  const { id } = useParams(); 
+  const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
@@ -21,6 +22,7 @@ export default function ProductDetails() {
 
   useEffect(() => {
     if (!token || !id) return;
+
     const fetchProduct = async () => {
       setStatus('loading');
       try {
@@ -36,8 +38,9 @@ export default function ProductDetails() {
         setStatus('failed');
       }
     };
+
     fetchProduct();
-  }, [id, token]);
+  }, [token, id]);
 
   const handleDelete = () => {
     toast((t) => (
@@ -92,11 +95,20 @@ export default function ProductDetails() {
   if (!product) return null;
 
   return (
-    <div className="min-h-screen bg-[#E0F2FF] flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-[#E0F2FF] px-4 py-10">
       <Toaster position="top-center" />
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full p-8 sm:p-10">
-        <h1 className="text-3xl font-bold text-[#1E40AF] mb-6">{product.name}</h1>
+
+      {/* Top Bar with BackButton */}
+      <div className="sticky top-0 z-50 mb-6 rounded-xl p-3 flex items-center gap-3 ">
+        <BackButton />
+        
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full mx-auto p-8 sm:p-10">
         <div className="flex flex-col sm:flex-row gap-6">
+          <h1 className="text-xl md:text-3xl font-bold text-[#1E40AF]">
+          {product.name}
+        </h1>
           <img
             src={product.images?.[0]}
             alt={product.name}

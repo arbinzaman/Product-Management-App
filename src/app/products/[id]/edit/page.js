@@ -1,21 +1,27 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { PacmanLoader } from 'react-spinners';
+import toast, { Toaster } from 'react-hot-toast';
+import BackButton from '@/shared/BackButton';
 
 export default function EditProductPage() {
   const router = useRouter();
-  const params = useParams(); 
+  const params = useParams();
   const id = params.id;
+
   const [token, setToken] = useState(null);
-  const [product, setProduct] = useState(null);
   const [form, setForm] = useState({
     name: '',
     description: '',
     price: '',
     images: [''],
+    categoryId: '',
   });
+  const [categories, setCategories] = useState([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
+
   const [status, setStatus] = useState('loading');
   const [error, setError] = useState(null);
   const [submitting, setSubmitting] = useState(false);
@@ -26,22 +32,44 @@ export default function EditProductPage() {
     setToken(storedToken);
   }, []);
 
+  // Fetch categories
+  useEffect(() => {
+    if (!token) return;
+    const fetchCategories = async () => {
+      setLoadingCategories(true);
+      try {
+        const res = await fetch(`https://api.bitechx.com/categories`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error('Failed to fetch categories');
+        const data = await res.json();
+        setCategories(data);
+      } catch (err) {
+        toast.error(err.message);
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+    fetchCategories();
+  }, [token]);
+
   // Fetch product
   useEffect(() => {
     if (!token || !id) return;
     const fetchProduct = async () => {
+      setStatus('loading');
       try {
         const res = await fetch(`https://api.bitechx.com/products/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (!res.ok) throw new Error('Failed to fetch product');
         const data = await res.json();
-        setProduct(data);
         setForm({
           name: data.name,
           description: data.description,
           price: data.price,
           images: data.images.length ? data.images : [''],
+          categoryId: data.categoryId || '',
         });
         setStatus('succeeded');
       } catch (err) {
@@ -80,47 +108,58 @@ export default function EditProductPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ ...form, price: Number(form.price) }),
+        body: JSON.stringify({
+          name: form.name,
+          description: form.description,
+          price: Number(form.price),
+          images: form.images.filter((img) => img),
+          categoryId: form.categoryId,
+        }),
       });
+
       if (!res.ok) throw new Error('Failed to update product');
+      toast.success('Product updated successfully!');
       router.push(`/products/${id}`);
     } catch (err) {
-      setError(err.message);
+      toast.error(err.message);
     } finally {
       setSubmitting(false);
     }
   };
 
-  // ✅ Modern themed loader
   if (status === 'loading')
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#E0F2FF] to-[#F0FAFF] px-4">
-        <div className="flex flex-col items-center justify-center w-80 h-80">
-          <PacmanLoader color="#A7C4DC" size={60} />
-          {/* <p className="mt-6 text-[#1E40AF] font-semibold text-lg">Loading Product...</p> */}
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-[#E0F2FF]">
+        <PacmanLoader color="#A7C4DC" size={60} />
       </div>
     );
 
-  if (status === 'failed') 
+  if (status === 'failed')
     return <p className="text-center text-red-500 mt-24 text-lg">{error}</p>;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#E0F2FF] px-4 py-10">
-      <div className="bg-white w-full max-w-lg rounded-2xl shadow-2xl p-8 sm:p-10">
-        <h1 className="text-3xl font-bold text-center text-[#1E40AF] mb-6">
+    <div className="min-h-screen bg-[#E0F2FF] px-4 py-10">
+      <Toaster position="top-center" />
+
+      {/* Top Bar */}
+      <div className="sticky top-0 z-50 mb-6 rounded-xl p-3 flex items-center justify-between md:justify-start gap-3 md:gap-6shadow-md">
+        <BackButton />
+    
+      </div>
+
+      {/* Form Container */}
+      <div className="bg-white w-full max-w-lg mx-auto rounded-2xl shadow-2xl p-8 sm:p-10">
+            <h1 className="text-xl md:text-3xl font-bold text-[#1E40AF]">
           Edit Product
         </h1>
-
-        {error && <p className="text-red-500 mb-3 text-center">{error}</p>}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4 mt-6">
           <input
             name="name"
             value={form.name}
             onChange={handleChange}
             placeholder="Product Name"
             className="w-full p-3 text-black rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#A7C4DC] transition"
+            required
           />
           <textarea
             name="description"
@@ -129,6 +168,7 @@ export default function EditProductPage() {
             placeholder="Description"
             className="w-full p-3 text-black rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#A7C4DC] transition resize-none"
             rows={4}
+            required
           />
           <input
             name="price"
@@ -137,6 +177,7 @@ export default function EditProductPage() {
             onChange={handleChange}
             placeholder="Price"
             className="w-full p-3 text-black rounded-full border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#A7C4DC] transition"
+            required
           />
 
           {/* Images */}
@@ -149,6 +190,7 @@ export default function EditProductPage() {
                   onChange={handleChange}
                   placeholder={`Image ${idx + 1} URL`}
                   className="flex-1 p-3 text-black rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#A7C4DC] transition"
+                  required
                 />
                 {form.images.length > 1 && (
                   <button
@@ -170,10 +212,27 @@ export default function EditProductPage() {
             </button>
           </div>
 
+          {/* Category */}
+          <select
+            name="categoryId"
+            value={form.categoryId}
+            onChange={handleChange}
+            className="w-full p-3 text-black rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#A7C4DC] transition"
+            required
+            disabled={loadingCategories}
+          >
+            <option value="">Select Category</option>
+            {categories.map((cat) => (
+              <option key={cat.id} value={cat.id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
+
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 mt-2 bg-gradient-to-r from-[#A7C4DC] to-[#91B5DD] text-white font-semibold rounded-full shadow-lg hover:scale-105 transition-transform flex items-center justify-center"
+            className="w-full py-3 mt-2 bg-gradient-to-r from-[#6EE7B7] via-[#3B82F6] to-[#9333EA] text-white font-semibold rounded-xl shadow-lg hover:scale-105 transition-transform flex items-center justify-center"
           >
             {submitting ? <PacmanLoader color="#fff" size={20} /> : 'Update Product'}
           </button>
