@@ -178,7 +178,7 @@ export default function ProductsPage() {
             >
               <div className="h-40 sm:h-44 overflow-hidden rounded-t-xl">
                 <img
-                  src={p.images[0]}
+                  src={p.images}
                   alt={p.name}
                   className="w-full h-full object-cover transition-transform duration-500 transform hover:scale-110"
                 />
@@ -210,7 +210,7 @@ export default function ProductsPage() {
           >
             Prev
           </button>
-          {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+          {Array?.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
             <button
               key={page}
               onClick={() => handlePageChange(page)}
